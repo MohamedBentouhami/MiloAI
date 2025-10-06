@@ -1,6 +1,7 @@
 import express from "express";
 import type { Request, Response } from "express";
 import OpenAI from "openai";
+import z from "zod";
 
 
 
@@ -22,10 +23,20 @@ app.get('/api/hello', (req: Request, res: Response) => {
 });
 
 const conversations = new Map<string, string>();
+const chatSchema = z.object({
+    prompt: z.string()
+        .min(1, "Prompt is required")
+        .max(1000, "Prompt is too long (mas 1000 characters)"),
+        conversationId : z.uuid()
+})
 
 app.post('/api/chat', async (req: Request, res: Response) => {
     const { prompt, conversationId } = req.body;
-
+    const parseResult : any = chatSchema.safeParse(req.body);
+    if(!parseResult){
+        res.status(400).json(parseResult.error.format());
+    
+    }
     const response = await client.responses.create({
         model: 'gpt-4o-mini',
         input: prompt,
