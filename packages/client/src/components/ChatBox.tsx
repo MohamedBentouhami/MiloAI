@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { useForm } from 'react-hook-form';
@@ -21,12 +21,17 @@ type Message = {
 export default function ChatBox() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, isLoading] = useState(false);
+    const formRef = useRef<HTMLFormElement | null>(null);
     const conversationId = useRef(crypto.randomUUID);
     const { register, handleSubmit, reset, formState } = useForm<FormData>();
 
+    useEffect(() => {
+        formRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages])
+
     const onSubmit = async ({ prompt }: FormData) => {
         setMessages(prev => [...prev, { content: prompt, role: 'user' }]);
-        isLoading(false);
+        isLoading(true);
         reset();
         const { data } = await axios.post<chatResponse>('/api/chat', {
             prompt,
@@ -46,27 +51,28 @@ export default function ChatBox() {
     return (
         <div>
             <div className='flex flex-col gap-3 mb-10'>
-                {messages.map((message, index) => <p key={index}
+               
+                {messages.map((message, index) => <div key={index}
                     className={`px-3 py-1 rounded-xl ${message.role === 'user' ?
                         'bg-blue-600 text-white self-end' :
                         'bg-gray-100 text-black'}`}>
-                    <ReactMarkdown>
+                    <ReactMarkdown >
                         {message.content}
                     </ReactMarkdown>
-
-                </p>)}
+                </div>)}
                 {loading && (
                     <div className='flex self-start gap-1 px-3 py-3 bg-gray-200 rounded-xl'>
-                        <div className='w-2 h-2 rounded-full bg-gray-800 animate-pulse'></div>)
-                        <div className='w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.2s]'></div>)
-                        <div className='w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.4s]'></div>)
+                        <div className='w-2 h-2 rounded-full bg-gray-800 animate-pulse'></div>
+                        <div className='w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.2s]'></div>
+                        <div className='w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.4s]'></div>
                     </div>)
                 }
             </div>
             <form
                 onSubmit={handleSubmit(onSubmit)}
                 onKeyDown={onKeyDown}
-                className="flex flex-col items-end gap-2 border-2 p-4 rounded-3xl">
+                className="flex flex-col items-end gap-2 border-2 p-4 rounded-3xl"
+                ref={formRef}>
                 <textarea
                     {...register('prompt', { required: true, validate: (data) => data.trim().length > 0 })}
                     className="w-full border-0 focus:outline-0 resize-none"
