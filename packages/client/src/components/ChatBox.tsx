@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { useForm } from 'react-hook-form';
 import { Button } from "./ui/button";
 import { FaArrowUp } from "react-icons/fa";
+import { CgEditHighlight } from 'react-icons/cg';
 
 type FormData = {
     prompt: string;
@@ -21,24 +22,34 @@ type Message = {
 export default function ChatBox() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, isLoading] = useState(false);
-    const formRef = useRef<HTMLFormElement | null>(null);
+    const lastMessageRef = useRef<HTMLDivElement | null>(null);
     const conversationId = useRef(crypto.randomUUID);
+    const [error, setError] = useState('');
     const { register, handleSubmit, reset, formState } = useForm<FormData>();
 
     useEffect(() => {
-        formRef.current?.scrollIntoView({ behavior: 'smooth' });
+        lastMessageRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages])
 
     const onSubmit = async ({ prompt }: FormData) => {
-        setMessages(prev => [...prev, { content: prompt, role: 'user' }]);
-        isLoading(true);
-        reset();
-        const { data } = await axios.post<chatResponse>('/api/chat', {
-            prompt,
-            conversationId: conversationId.current
-        });
-        setMessages(prev => [...prev, { content: data.message, role: 'bot' }]);
-        isLoading(false);
+        try {
+            setMessages(prev => [...prev, { content: prompt, role: 'user' }]);
+            isLoading(true);
+            setError('')
+
+            reset({ prompt: '' });
+            const { data } = await axios.post<chatResponse>('/api/chat', {
+                prompt,
+                conversationId: conversationId.current
+            });
+            setMessages(prev => [...prev, { content: data.message, role: 'bot' }]);
+        } catch (error) {
+            console.log(error);
+            setError('Something went wrong, try again');
+        } finally {
+            isLoading(false);
+
+        }
     }
 
     const onKeyDown = (e: KeyboardEvent<HTMLFormElement>) => {
@@ -48,18 +59,28 @@ export default function ChatBox() {
         }
     }
 
+    const onCopyMessage = (e: React.ClipboardEvent) => {
+        const selection = window.getSelection()?.toString().trim();
+        if (selection) {
+            e.preventDefault();
+            e.clipboardData.setData('text/plain', selection);
+        }
+    }
+
     return (
-        <div>
-            <div className='flex flex-col gap-3 mb-10'>
-               
-                {messages.map((message, index) => <div key={index}
-                    className={`px-3 py-1 rounded-xl ${message.role === 'user' ?
-                        'bg-blue-600 text-white self-end' :
-                        'bg-gray-100 text-black'}`}>
-                    <ReactMarkdown >
-                        {message.content}
-                    </ReactMarkdown>
-                </div>)}
+        <div className='flex flex-col h-full'>
+            <div className='flex flex-col flex-1 gap-3 mb-10 overflow-y-auto'>
+                {messages.map((message, index) =>
+                    <div key={index}
+                        onCopy={onCopyMessage}
+                        ref={index == messages.length - 1 ? lastMessageRef : null}
+                        className={`px-3 py-1 rounded-xl ${message.role === 'user' ?
+                            'bg-blue-600 text-white self-end' :
+                            'bg-gray-100 text-black'}`}>
+                        <ReactMarkdown >
+                            {message.content}
+                        </ReactMarkdown>
+                    </div>)}
                 {loading && (
                     <div className='flex self-start gap-1 px-3 py-3 bg-gray-200 rounded-xl'>
                         <div className='w-2 h-2 rounded-full bg-gray-800 animate-pulse'></div>
@@ -67,15 +88,16 @@ export default function ChatBox() {
                         <div className='w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.4s]'></div>
                     </div>)
                 }
+                {error && <p className='text-red-500'>{error}</p>}
             </div>
             <form
                 onSubmit={handleSubmit(onSubmit)}
                 onKeyDown={onKeyDown}
-                className="flex flex-col items-end gap-2 border-2 p-4 rounded-3xl"
-                ref={formRef}>
+                className="flex flex-col items-end gap-2 border-2 p-4 rounded-3xl">
                 <textarea
                     {...register('prompt', { required: true, validate: (data) => data.trim().length > 0 })}
                     className="w-full border-0 focus:outline-0 resize-none"
+                    autoFocus
                     placeholder="Ask anything"
                     maxLength={1000} />
                 <Button className="rounded-full w-9 h-9" disabled={!formState.isValid}>
