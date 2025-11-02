@@ -1,9 +1,9 @@
-import ChatBox from "./components/ChatBox";
+import ChatBot from "./components/chat/ChatBot";
 
 function App() {
   return (
-    <div className="p-4  h-screen w-full">
-      <ChatBox />
+    <div className="p-4 h-screen w-full">
+      <ChatBot />
     </div>
   )
 
