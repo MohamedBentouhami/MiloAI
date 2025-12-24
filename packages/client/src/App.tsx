@@ -1,5 +1,5 @@
 import ChatBot from "./components/chat/ChatBot";
-import ReviewList from "./components/reviews/reviewList";
+import ReviewList from "./components/reviews/ReviewList";
 
 function App() {
   return (

@@ -4,47 +4,24 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import StarRating from "./StarRating";
 import { Button } from "../ui/button";
 import ReviewSkeleton from "./ReviewSkeleton";
+import { reviewsApi, type GetReviewsResponse, type SummarizeResponse } from "@/services/reviews.service";
 
 type Props = {
     productId: number;
 }
 
-type Review = {
-    id: number;
-    author: string;
-    content: string;
-    rating: number;
-    createdAt: string;
-}
 
-type GetReviewsResponse = {
-    summary: string | null;
-    reviews: Review[]
-}
-
-type SummarizeResponse = {
-    summary: string
-}
 
 export default function ReviewList({ productId }: Props) {
     const summaryMutation = useMutation<SummarizeResponse>({
-        mutationFn: () => summarizeReview()
+        mutationFn: () => reviewsApi.summarizeReview(productId)
     })
 
     const reviewsQuery= useQuery<GetReviewsResponse>({
         queryKey: ['reviews', productId],
-        queryFn: () => fetchReviews()
+        queryFn: () => reviewsApi.fetchReview(productId)
     })
 
-    const summarizeReview = async () => {
-        const { data } = await axios.post<SummarizeResponse>(`/api/products/${productId}/reviews/summarize`);
-        return data;
-    }
-
-    const fetchReviews = async () => {
-        const { data } = await axios.get<GetReviewsResponse>(`/api/products/${productId}/reviews`);
-        return data;
-    }
 
     if (reviewsQuery.isLoading) {
         return (<div className="flex flex-col gap-5">
