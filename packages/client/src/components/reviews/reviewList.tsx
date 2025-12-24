@@ -1,8 +1,9 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { HiSparkles } from "react-icons/hi2";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import StarRating from "./StarRating";
-import Skeleton from 'react-loading-skeleton'
-import { useQuery } from "@tanstack/react-query";
+import { Button } from "../ui/button";
+import ReviewSkeleton from "./ReviewSkeleton";
 
 type Props = {
     productId: number;
@@ -21,44 +22,73 @@ type GetReviewsResponse = {
     reviews: Review[]
 }
 
+type SummarizeResponse = {
+    summary: string
+}
+
 export default function ReviewList({ productId }: Props) {
-    const { data: reviewData, error, isLoading } = useQuery<GetReviewsResponse>({
+    const summaryMutation = useMutation<SummarizeResponse>({
+        mutationFn: () => summarizeReview()
+    })
+
+    const reviewsQuery= useQuery<GetReviewsResponse>({
         queryKey: ['reviews', productId],
         queryFn: () => fetchReviews()
     })
+
+    const summarizeReview = async () => {
+        const { data } = await axios.post<SummarizeResponse>(`/api/products/${productId}/reviews/summarize`);
+        return data;
+    }
 
     const fetchReviews = async () => {
         const { data } = await axios.get<GetReviewsResponse>(`/api/products/${productId}/reviews`);
         return data;
     }
 
-    if (isLoading) {
+    if (reviewsQuery.isLoading) {
         return (<div className="flex flex-col gap-5">
             {
                 [1, 2, 3].map(i => (
-                    <div key={i}>
-                        <Skeleton width={150} />
-                        <Skeleton width={100} />
-                        <Skeleton count={2} />
-                    </div>
+                    <ReviewSkeleton key={i} />
                 ))
             }
 
         </div>)
     }
-    if (error) {
+    if (reviewsQuery.error) {
         return <p className="text-red-500">Could not fetch reviews. Try again! </p>
     }
+    if (!reviewsQuery.data?.reviews.length) {
+        return null;
+    }
+
+    const currentSummary = reviewsQuery.data.summary || summaryMutation.data?.summary;
 
     return (
-        <div className="flex flex-col gap-5">
-            {reviewData?.reviews.map(review => (
-                <div key={review.id}>
-                    <div className="font-semibold">{review.author}</div>
-                    <StarRating value={review.rating} />
-                    <p className="py-2">{review.content}</p>
-                </div>
-            ))}
+        <div>
+            <div className="mb-5">
+                {currentSummary ?
+                    (<p>{currentSummary}</p>) :
+                    (
+                        <div><Button onClick={() => summaryMutation.mutate()} className="cursor-pointer"
+                            disabled={summaryMutation.isPending}><HiSparkles />Summarize</Button>
+
+                            {summaryMutation.isPending && <div className="py-3"><ReviewSkeleton /></div>}
+                            {summaryMutation.isError && <p className="text-red-500">Could not summarize reviews. Try again! </p>}
+                        </div>
+                    )
+                }
+            </div>
+            <div className="flex flex-col gap-5">
+                {reviewsQuery.data?.reviews.map(review => (
+                    <div key={review.id}>
+                        <div className="font-semibold">{review.author}</div>
+                        <StarRating value={review.rating} />
+                        <p className="py-2">{review.content}</p>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
