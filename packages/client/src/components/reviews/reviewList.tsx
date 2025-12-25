@@ -1,4 +1,3 @@
-import axios from "axios";
 import { HiSparkles } from "react-icons/hi2";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import StarRating from "./StarRating";
@@ -10,9 +9,8 @@ type Props = {
     productId: number;
 }
 
-
-
 export default function ReviewList({ productId }: Props) {
+
     const summaryMutation = useMutation<SummarizeResponse>({
         mutationFn: () => reviewsApi.summarizeReview(productId)
     })
