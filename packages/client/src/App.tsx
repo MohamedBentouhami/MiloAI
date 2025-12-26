@@ -1,11 +1,14 @@
-import ChatBot from "./components/chat/ChatBot";
-import ReviewList from "./components/reviews/ReviewList";
+import NavBar from "./components/nav-bar/nav-bar";
+import { Outlet } from "react-router-dom";
+
 
 function App() {
   return (
-    <div className="p-4 h-screen w-full">
-      {/* <ChatBot /> */}
-      <ReviewList productId={2}/>
+    <div className="p-0 h-screen w-full">
+      <header>
+        <NavBar />
+      </header>
+      <Outlet />
     </div>
   )
 
