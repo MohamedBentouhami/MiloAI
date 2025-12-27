@@ -1,4 +1,8 @@
-export default function ChatBotPage(){
+import ChatBot from "@/components/chat/ChatBot";
 
-    return <div>ChatBoot page</div>
+export default function ChatBotPage() {
+
+    return <div className="flex flex-col flex-1 h-full p-8 pt-10">
+        <ChatBot />
+    </div>
 }

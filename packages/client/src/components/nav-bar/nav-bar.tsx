@@ -4,20 +4,20 @@ import "./nav-bar.css"
 export default function NavBar() {
     return <nav className="navbar">
 
-      <ul className="nav-list">
-            <li className="nav-link">
+        <ul className="nav-list">
+            <li>
                 <NavLink to={"/"}>
                     Home
                 </NavLink>
             </li>
             <li>
-                <NavLink to={"/chat"}>
-                    ChatBot
+                <NavLink to={"/reviews"}>
+                    Review
                 </NavLink>
             </li>
             <li>
-                <NavLink to={"/reviews"}>
-                    Review
+                <NavLink to={"/chat"}>
+                    ChatBot
                 </NavLink>
             </li>
         </ul>

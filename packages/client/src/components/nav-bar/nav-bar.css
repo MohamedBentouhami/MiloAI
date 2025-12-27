@@ -2,17 +2,19 @@
 
 
 .navbar {
-  @apply text-white bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-8 py-4 shadow-lg ml-[65%] rounded-l-lg;
+    @apply text-white bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-5 py-3 shadow-lg ml-[65%] rounded-bl-lg;
 }
 
 .nav-list {
-  @apply flex items-center justify-center gap-8;
+    @apply flex items-center justify-center gap-10;
+
+
+    a {
+        @apply text-white font-medium transition-colors duration-300 hover:text-sky-400;
+
+    }
 }
 
-.nav-link {
-  @apply text-white font-medium transition-colors duration-300 hover:text-sky-400;
-}
-
-.nav-link.active {
-  @apply text-sky-400 font-semibold;
+.active{
+    @apply border border-gray-400 px-4 py-1 inline-block rounded-2xl
 }
